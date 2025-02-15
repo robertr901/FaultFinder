@@ -1,0 +1,60 @@
+name: FaultFinder CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  android-build:
+    name: Build & Test Android Plugin
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Grant Execute Permission to Gradle
+        run: chmod +x gradlew
+
+      - name: Build Android Studio Plugin
+        run: ./gradlew build
+
+      - name: Run Lint Checks
+        run: ./gradlew lint
+
+      - name: Run Tests
+        run: ./gradlew test
+
+  python-tests:
+    name: Run AI Tests (Log Classification)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r ai/requirements.txt
+          pip install flake8 pytest
+
+      - name: Run Linter (flake8)
+        run: flake8 ai/
+
+      - name: Run Tests
+        run: pytest ai/tests/
